@@ -19,13 +19,15 @@ everysec: 每秒将os cache中的数据fsync到磁盘，这个最常用的，生
 
 no: 仅仅redis负责将数据写入os cache就撒手不管了，然后后面os自己会时不时有自己的策略将数据刷入磁盘，不可控了
 
-
-
 # AOF持久化的数据恢复实验
 
 （1）先仅仅打开RDB，写入一些数据，然后kill -9杀掉redis进程，接着重启redis，发现数据没了，因为RDB快照还没生成
+
 （2）打开AOF的开关，启用AOF持久化
+
 （3）写入一些数据，观察AOF文件中的日志内容
+
+
 
 其实你在appendonly.aof文件中，可以看到刚写的日志，它们其实就是先写入os cache的，然后1秒后才fsync到磁盘中，只有fsync到磁盘中了，才是安全的，要不然光是在os cache中，机器只要重启，就什么都没了
 
@@ -33,9 +35,7 @@ no: 仅仅redis负责将数据写入os cache就撒手不管了，然后后面os�
 
 redis进程启动的时候，直接就会从appendonly.aof中加载所有的日志，把内存中的数据恢复回来
 
-
-
-# AOF rewrite
+#  AOF rewrite
 
 redis中的数据其实有限的，很多数据可能会自动过期，可能会被用户删除，可能会被redis用缓存清除的算法清理掉
 
@@ -59,16 +59,18 @@ auto-aof-rewrite-min-size 64mb
 但是此时还要去跟min-size，64mb去比较，256mb > 64mb，才会去触发rewrite
 
 （1）redis fork一个子进程
+
 （2）子进程基于当前内存中的数据，构建日志，开始往一个新的临时的AOF文件中写入日志
+
 （3）redis主进程，接收到client新的写操作之后，在内存中写入日志，同时新的日志也继续写入旧的AOF文件
+
 （4）子进程写完新的日志文件之后，redis主进程将内存中的新日志再次追加到新的AOF文件中
+
 （5）用新的日志文件替换掉旧的日志文件
 
 
 
 ![](./images/05_AOF的rewrite过程.jpg)
-
-
 
 # AOF破损文件的修复
 
@@ -81,7 +83,13 @@ auto-aof-rewrite-min-size 64mb
 # AOF和RDB同时工作
 
 （1）如果RDB在执行snapshotting操作，那么redis不会执行AOF rewrite; 如果redis再执行AOF rewrite，那么就不会执行RDB snapshotting
+
+---
+
 （2）如果RDB在执行snapshotting，此时用户执行BGREWRITEAOF命令，那么等RDB快照生成之后，才会去执行AOF rewrite
+
+---
+
 （3）同时有RDB snapshot文件和AOF日志文件，那么redis重启的时候，会优先使用AOF进行数据恢复，因为其中的日志更完整
 
 
@@ -89,7 +97,15 @@ auto-aof-rewrite-min-size 64mb
 # 最后一个小实验，对redis的数据恢复有更加深刻的体会
 
 （1）在有rdb的dump和aof的appendonly的同时，rdb里也有部分数据，aof里也有部分数据，这个时候其实会发现，rdb的数据不会恢复到内存中
+
+---
+
 （2）我们模拟让aof破损，然后fix，有一条数据会被fix删除
+
+---
+
 （3）再次用fix得aof文件去重启redis，发现数据只剩下一条了
+
+---
 
 数据恢复完全是依赖于底层的磁盘的持久化的，主要rdb和aof上都没有数据，那就没了

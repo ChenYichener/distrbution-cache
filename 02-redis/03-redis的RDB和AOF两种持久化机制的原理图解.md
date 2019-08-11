@@ -12,19 +12,15 @@ AOF机制对每条写入命令作为日志，以append-only的模式写入一个
 
 如果同时使用RDB和AOF两种持久化机制，那么在redis重启的时候，会使用AOF来重新构建数据，因为AOF中的数据更加完整
 
-
-
 ### RDB持久化机制原理
 
 ![](./images/02_RDB持久化机制原理.jpg)
 
-###　AOF持久化机制原理
+### AOF持久化机制原理
 
 ![](./images/03_AOF持久化机制原理.jpg)
 
-
-
-###　AOF的rewrite原理剖析
+### AOF的rewrite原理剖析
 
 ![](./images/04_AOF的rewrite机制原理剖析.jpg)
 

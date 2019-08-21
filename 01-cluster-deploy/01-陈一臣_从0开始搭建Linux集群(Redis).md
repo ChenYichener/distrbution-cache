@@ -87,15 +87,23 @@ cp id_rsa.pub  authorized_keys
 ## Redis安装
 
 ```shell
+# 先安装tcl
+$ tar -zxvf tcl-xxx
+$ cd tcl-xx
+$ cd unix
+$ ./configration
+$ make && make install
+
+# 再安装redis
 $ wget http://download.redis.io/releases/redis-5.0.5.tar.gz
 $ tar xzf redis-5.0.5.tar.gz
 $ cd redis-5.0.5
 
 让redis安装到指定目录
 
-vim  /opt/redis-4.0.2/src/MakeFiel         进入vim编辑器
+#$ vim  /opt/redis-4.0.2/src/MakeFiel         进入vim编辑器
 
-PREFIX?=/usr/local/redis                   修改的内容
+#$ PREFIX?=/usr/local/redis                   修改的内容
 
 
 $ make && make test && make install
@@ -113,10 +121,10 @@ $ make && make test && make install
 
 3 修改redis_6379文件中14行REDISPORT，redis的监听端口
 
-4 cd /etc/   
 
-  mkdir redis 在/etc/目录下创建redis的配置文件目录
-
+  mkdir /etc/redis               # 创建redis配置目录
+  mkdir -p /var/redis/6379       # 创建redis工作目录
+  
 5 将解压后的redis-5.5.5/redis.conf文件复制到/etc/redis目录下
 
 6  mv /etc/redis/redis.conf  /etc/reids/6379.conf 修改配置文件的名字
@@ -126,16 +134,15 @@ $ make && make test && make install
     pidfile   /var/run/redis_6379.pid   设置redis的pid文件位置
     port 6379                           设置redis的监听端口号
     dir  /var/redis/6379                设置持久化文件的存储位置
-    
-    创建/var/redis/6379目录
-    
-7 启动redis， 执行/etc/init.d/redis_6379脚本
 
-8 让redis跟随系统启动自动启动  checkconfig 
+8 让redis跟随系统启动自动启动 
    chmod 755 redis_6379
    chkconfig  --add redis_6379 on
    chkconfig  redis_6379 on
+    
    
+7 启动redis， 执行/etc/init.d/redis_6379脚本
+
 9 使用redis-cli
 
      redis-cli -h 127.0.0.1 -p 6379 交互式命令行启动
